@@ -1,0 +1,22 @@
+---
+title: "p8105_hw2_bw2595"
+author: "Blair Wigsten"
+date: "9/25/2019"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+library(readxl)
+trashwheel_data = read_excel("data/HealthyHarborWaterWheelTotals2018-7-28.xlsx")
+```
+
+```{r}
+trashwheel_data = janitor::clean_names(trashwheel_data)
+```
+
