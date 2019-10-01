@@ -17,6 +17,21 @@ trashwheel_data = read_excel("data/HealthyHarborWaterWheelTotals2018-7-28.xlsx",
   janitor::clean_names() %>%
   select(-x15) %>%
   drop_na(dumpster) %>%
+  mutate(sports_balls = as.integer(round(sports_balls, 0)))
+```
+
+```{r}
+precip_2018 = read_excel("data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 3, skip = 1) %>%
+  janitor::clean_names() %>%
+  drop_na() %>%
+  mutate(year = 2018)
+```
+
+```{r}
+precip_2017 = read_excel("data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 4, skip = 1) %>%
+  janitor::clean_names() %>%
+  drop_na() %>%
+  mutate(year = 2017)
 ```
 
 
