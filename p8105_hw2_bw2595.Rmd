@@ -15,7 +15,7 @@ library(tidyverse)
 library(readxl)
 trashwheel_data = read_excel("data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", 1) %>%
   janitor::clean_names() %>%
-  select(-x15) %>%
+  select(-x15, -x16, -x17) %>%
   drop_na(dumpster) %>%
   mutate(sports_balls = as.integer(round(sports_balls, 0)))
 ```
@@ -28,7 +28,7 @@ precip_2018 = read_excel("data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", 5, sk
 ```
 
 ```{r}
-precip_2017 = read_excel("data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 6, skip = 1) %>%
+precip_2017 = read_excel("data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", 6, skip = 1) %>%
   janitor::clean_names() %>%
   drop_na() %>%
   mutate(year = 2017)
@@ -38,8 +38,15 @@ precip_2017 = read_excel("data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 6, 
 precip_2017_2018 =
   bind_rows(precip_2017, precip_2018) %>%
   janitor::clean_names() %>%
-
+  arrange(month) %>%
+  mutate(
+    month = as.numeric(month), 
+    month = month.abb[month])
 ```
+
+There are `r nrow(precip_2017_2018)` observations in the combined precipitation dataset and `r nrow(trashwheel_data)` observations in the trashwheel dataset. . The total precipitation in 2018 was `r sum(pull(precip_2018, total))`. 
+*key observations and median sports balls in 2017*
+
 
 
 
