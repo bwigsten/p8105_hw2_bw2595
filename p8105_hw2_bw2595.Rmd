@@ -59,6 +59,39 @@ pols_month = read_csv(file = "fivethirtyeight_datasets/pols-month.csv") %>%
   select(-day)
 ```
 
+```{r}
+snp = read_csv(file = "fivethirtyeight_datasets/snp.csv") %>%
+  janitor::clean_names() %>%
+  separate(date, into = c("day", "month", "year")) %>%
+  arrange(year, month) %>%
+  mutate(
+    month = as.numeric(month),
+    month = month.abb[month]) %>%
+  select(year, month, close)
+```
+
+```{r}
+unemployment = read.csv(file = "fivethirtyeight_datasets/unemployment.csv") %>%
+  pivot_longer(
+    Jan:Dec,
+    names_to = "month",
+    values_to = "unemployment rate") %>%
+  rename(year = Year) %>%
+  mutate(
+    year = as.character(year))
+```
+
+```{r}
+snp_pols = 
+  left_join(pols_month, snp, by = c("year", "month"))
+```
+
+```{r}
+final_data = left_join(snp_pols, unemployment, by = c("year", "month"))
+```
+
+
+
 
 
 
