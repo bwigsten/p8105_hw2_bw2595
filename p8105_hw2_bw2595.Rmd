@@ -13,10 +13,11 @@ library(tidyverse)
 
 ```{r}
 library(readxl)
-trashwheel_data = read_excel("data/HealthyHarborWaterWheelTotals2018-7-28.xlsx")
+trashwheel_data = read_excel("data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 1) %>%
+  janitor::clean_names() %>%
+  select(-x15) %>%
+  drop_na(dumpster) %>%
 ```
 
-```{r}
-trashwheel_data = janitor::clean_names(trashwheel_data)
-```
+
 
