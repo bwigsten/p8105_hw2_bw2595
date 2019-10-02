@@ -45,11 +45,11 @@ precip_2017_2018 =
     month = month.abb[month])
 ```
 
-There are `r nrow(precip_2017_2018)` observations in the combined precipitation dataset and `r nrow(trashwheel_data)` observations in the trashwheel dataset. The total precipitation in 2018 was `r sum(pull(precip_2018, total))`. The key variables in both the trashwheel dataset and precipitation_2017_2018 are month and year, as they are the only variables in both datasets. The median number of sports balls collected in 2017 is `r trashwheel_data %>% filter(year == "2017") %>% pull(sports_balls) %>% median()`.
+There are `r nrow(precip_2017_2018)` observations in the combined precipitation dataset and `r nrow(trashwheel_data)` observations in the trashwheel dataset. The total precipitation in 2018 was `r sum(pull(precip_2018, total))`. The key variables in both the trashwheel dataset and precipitation_2017_2018 are month and year, as they are in both datasets. The median number of sports balls collected in 2017 is `r trashwheel_data %>% filter(year == "2017") %>% pull(sports_balls) %>% median()`.
  
 
 ```{r}
-pols_month = read_csv(file = "fivethirtyeight_datasets/pols-month.csv") %>%
+pols = read_csv(file = "fivethirtyeight_datasets/pols-month.csv") %>%
   janitor::clean_names() %>%
   separate(mon, into = c("year", "month", "day")) %>%
   mutate(
@@ -57,9 +57,10 @@ pols_month = read_csv(file = "fivethirtyeight_datasets/pols-month.csv") %>%
     month = month.abb[month],
     prez_gop = recode(prez_gop, `1` = "gop", `0` = "dem", `2` = "gop"),
     president = prez_gop) %>%
-  select(-day)
-pols_month
+  select(-day, -prez_dem, -prez_gop)
+pols
 ```
+
 
 ```{r}
 snp = read_csv(file = "fivethirtyeight_datasets/snp.csv") %>%
@@ -73,6 +74,7 @@ snp = read_csv(file = "fivethirtyeight_datasets/snp.csv") %>%
 snp
 ```
 
+
 ```{r}
 unemployment = read.csv(file = "fivethirtyeight_datasets/unemployment.csv") %>%
   pivot_longer(
@@ -85,16 +87,20 @@ unemployment = read.csv(file = "fivethirtyeight_datasets/unemployment.csv") %>%
 unemployment
 ```
 
+The pols dataset contains information regarding presidential, senatorial, house, and governor party information. We are given the counts per month of each year (from 1947 through 2015) for party affiliation in each of the government branches. The snp dataset contains information for months of each year (1950 through 2015) regarding the closing value of the S&P stock index. The unemployment dataset contains information regarding the unemployment rate associated with months of each year (1948 through 2015). After merging snp into pols by year and month, and merging the unemployment dataset with the result, also by year and month, we have the final_data set. This dataset contains each month and year observation from all three original datasets, and all variables, besides day, from each dataset. There are missing values for certain variables in some months/years where data was not available but was included in this cleaning to be conservative. The final dataset has 1,1391 observations and 11 variables. The range of years included is from January 1947 to June 2015. Key variables in this analysis would inlude the year and month, as those are how we joined datasets.
+
+
 ```{r}
 snp_pols = 
-  left_join(pols_month, snp, by = c("year", "month"))
+  left_join(pols, snp, by = c("year", "month"))
+snp_pols
 ```
 
 ```{r}
 final_data = left_join(snp_pols, unemployment, by = c("year", "month"))
+final_data
 ```
 
-*write paragraph describing the data*
 
 ```{r}
 baby_names = read_csv(file = "data/Popular_Baby_Names.csv") %>%
