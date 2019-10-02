@@ -4,7 +4,7 @@ author: "Blair Wigsten"
 date: "9/25/2019"
 output: github_document
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r}
@@ -38,14 +38,15 @@ precip_2017 = read_excel("data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", 6, sk
 precip_2017_2018 =
   bind_rows(precip_2017, precip_2018) %>%
   janitor::clean_names() %>%
-  arrange(month) %>%
+  select(year, month, total) %>%
+  arrange(year, month) %>%
   mutate(
     month = as.numeric(month), 
     month = month.abb[month])
 ```
 
-There are `r nrow(precip_2017_2018)` observations in the combined precipitation dataset and `r nrow(trashwheel_data)` observations in the trashwheel dataset. . The total precipitation in 2018 was `r sum(pull(precip_2018, total))`. 
-*key observations and median sports balls in 2017*
+There are `r nrow(precip_2017_2018)` observations in the combined precipitation dataset and `r nrow(trashwheel_data)` observations in the trashwheel dataset. The total precipitation in 2018 was `r sum(pull(precip_2018, total))`. The key variables in both the trashwheel dataset and precipitation_2017_2018 are month and year, as they are the only variables in both datasets. The median number of sports balls collected in 2017 is `r trashwheel_data %>% filter(year == "2017") %>% pull(sports_balls) %>% median()`.
+ 
 
 ```{r}
 pols_month = read_csv(file = "fivethirtyeight_datasets/pols-month.csv") %>%
@@ -57,6 +58,7 @@ pols_month = read_csv(file = "fivethirtyeight_datasets/pols-month.csv") %>%
     prez_gop = recode(prez_gop, `1` = "gop", `0` = "dem", `2` = "gop"),
     president = prez_gop) %>%
   select(-day)
+pols_month
 ```
 
 ```{r}
@@ -68,6 +70,7 @@ snp = read_csv(file = "fivethirtyeight_datasets/snp.csv") %>%
     month = as.numeric(month),
     month = month.abb[month]) %>%
   select(year, month, close)
+snp
 ```
 
 ```{r}
@@ -79,6 +82,7 @@ unemployment = read.csv(file = "fivethirtyeight_datasets/unemployment.csv") %>%
   rename(year = Year) %>%
   mutate(
     year = as.character(year))
+unemployment
 ```
 
 ```{r}
@@ -111,11 +115,10 @@ baby_names = read_csv(file = "data/Popular_Baby_Names.csv") %>%
 ```
 
 
-
-
 ```{r}
 olivia_table = tibble(
-  
+  ethnicity = pull(baby_names, ethnicity), 
+  birth_year = pull(baby_names, birth_year)
 )
 ```
 
