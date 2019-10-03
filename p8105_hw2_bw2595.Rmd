@@ -146,14 +146,25 @@ baby_names = read_csv(file = "data/Popular_Baby_Names.csv") %>%
 ```
 * We clean variable names, rename variables to be more descriptive, convert all observations to lower case, then delete duplicate rows using distinct. Finally, since ethnicity names change over time, we create cohesive categorical indicators for each inconsistent predictor (black non hispanic, asian and pacific islander, and white non hispanic). 
 
+## Produce a table for the rank in popularity of Olivia over time
+
+### Olivia Popularity (Rank) Over Time by Ethnicity
 ```{r}
 olivia = baby_names %>%
   filter(first_name == "olivia") %>%
   select(birth_year, ethnicity, rank) %>%
+  arrange(birth_year) %>%
   pivot_wider(
     names_from = "birth_year", 
     values_from = "rank")
-olivia
+
+kable(olivia)
+```
+
+```{r}
+white_male = baby_names %>%
+  filter(gender == "male", birth_year == "2016", ethnicity == "white non hispanic") 
+ggplot(white_male, aes(x = rank, y = count)) + geom_point()
 ```
 
 
