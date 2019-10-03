@@ -6,26 +6,33 @@ output: github_document
 editor_options: 
   chunk_output_type: inline
 ---
-
+# Problem 1: Mr. Trash Wheel Dataset
 ```{r}
 library(tidyverse)
+library(knitr)
 ```
 
+## Read and clean the Mr. Trash Wheel dataset
 ```{r}
 library(readxl)
 trashwheel_data = read_excel("data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", 1) %>%
   janitor::clean_names() %>%
   select(-x15, -x16, -x17) %>%
   drop_na(dumpster) %>%
+  rename(trash_weight_tons = weight_tons,
+         trash_volume_cubicyards = volume_cubic_yards) %>%
   mutate(sports_balls = as.integer(round(sports_balls, 0)))
 ```
+* Using the first sheet in the Excel document to import the Mr. Trash Wheel data, we clean the variable names to lower snake case. Then, using the select argument, we eliminate variables with text for entries (x15, x16, and x17). To drop rows that represent monthly totals (do not have dumpster specific data), we drop any rows that contain "N/A" within the dumpster variable. In order to create meaningful variable names, we change the weight_tons to trash_weight_tons, and volume_cubic_yards to trash_volume_cubicyards. Finally, we use mutate to round the sports_balls variable to 0 decimal places, then convert that result to an integer variable. 
 
+## Read and clean precipitation data for 2017 and 2018
 ```{r}
 precip_2018 = read_excel("data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", 5, skip = 1) %>%
   janitor::clean_names() %>%
   drop_na() %>%
   mutate(year = 2018)
 ```
+* This loads and cleans the 2018 precipitation data within the Trashwheel Excel document, sheet number 5. We skip the first row of the excel sheet, as our variable names start on row 2 of the sheet. We convert all variable names to lower snake case, drop any rows with "N/A", and add a variable "year" where each observation has a value of 2018. 
 
 ```{r}
 precip_2017 = read_excel("data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", 6, skip = 1) %>%
@@ -33,7 +40,9 @@ precip_2017 = read_excel("data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", 6, sk
   drop_na() %>%
   mutate(year = 2017)
 ```
+* This loads and cleans the 2017 precipitation data within the Trashwheel Excel document, sheet number 6. We skip the first row of the excel sheet, as our variable names start on row 2 of the sheet. We convert all variable names to lower snake case, drop any rows with "N/A", and add a variable "year" where each observation has a value of 2017. 
 
+## Combine precipitation datasets and convert month to a character variable
 ```{r}
 precip_2017_2018 =
   bind_rows(precip_2017, precip_2018) %>%
@@ -43,11 +52,18 @@ precip_2017_2018 =
   mutate(
     month = as.numeric(month), 
     month = month.abb[month])
+precip_2017_2018
+precip_2017_2018
 ```
+* Using bind rows, we stack datasets on top of each other. Then clean the variable names, keep the year, month, and total variables, arrange by year and month, then convert month to a character variable with their 3 letter abbreviations. 
 
-There are `r nrow(precip_2017_2018)` observations in the combined precipitation dataset and `r nrow(trashwheel_data)` observations in the trashwheel dataset. The total precipitation in 2018 was `r sum(pull(precip_2018, total))`. The key variables in both the trashwheel dataset and precipitation_2017_2018 are month and year, as they are in both datasets. The median number of sports balls collected in 2017 is `r trashwheel_data %>% filter(year == "2017") %>% pull(sports_balls) %>% median()`.
+## Paragraph describing the data using inline code
+
+There are `r nrow(precip_2017_2018)` observations in the combined precipitation dataset and `r nrow(trashwheel_data)` observations in the trashwheel dataset. The total precipitation in 2018 was `r sum(pull(precip_2018, total))`. The key variables in both the trashwheel dataset and precipitation_2017_2018 are month and year, as they are in both datasets. Other key variables for analysis include precipitation totals, trash weight, trash volume, and homes powered, as these would be relevant for any analysis into the effectiveness of the trash wheel. The median number of sports balls collected in 2017 is `r trashwheel_data %>% filter(year == "2017") %>% pull(sports_balls) %>% median()`.
  
+# Problem 2: FiveThirtyEight Data
 
+## Load and clean data from pols-month 
 ```{r}
 pols = read_csv(file = "fivethirtyeight_datasets/pols-month.csv") %>%
   janitor::clean_names() %>%
@@ -60,21 +76,24 @@ pols = read_csv(file = "fivethirtyeight_datasets/pols-month.csv") %>%
   select(-day, -prez_dem, -prez_gop)
 pols
 ```
+* We clean the variable names of the pols data, separate the date into year, month, and day variables. Using mutate argument, we convert all month names to the 3 letter abbreviations, recode the prez_gop group to gop if 1 or 2, and dem if 0. Then, we set the newly created president variable to equal the prez_gop variable, then drop the day, prez_dem, and -prez_gop variables. This dataset is already arranged by year and month for merging later. 
 
-
+## Load and clean snp data
 ```{r}
 snp = read_csv(file = "fivethirtyeight_datasets/snp.csv") %>%
   janitor::clean_names() %>%
   separate(date, into = c("day", "month", "year")) %>%
   arrange(year, month) %>%
+  rename(sp_close = close) %>%
   mutate(
     month = as.numeric(month),
     month = month.abb[month]) %>%
-  select(year, month, close)
+  select(year, month, sp_close) 
 snp
 ```
+* We clean the variable names of the snp data, separate the date into year, month, and day variables. We arrange the dataset by year and month. For clarity, we rename the variable "close" to "spclose". Then, using the mutate argument, we convert all month names to the 3 letter abbreviations. We select the year, month, and sp_close variables to keep in the final cleaned dataset. 
 
-
+## Load and clean unemployment data
 ```{r}
 unemployment = read.csv(file = "fivethirtyeight_datasets/unemployment.csv") %>%
   pivot_longer(
@@ -86,22 +105,30 @@ unemployment = read.csv(file = "fivethirtyeight_datasets/unemployment.csv") %>%
     year = as.character(year))
 unemployment
 ```
+* Here, I did not clean the variable names using janitor in order to pivot first and merge easier later (month names stay with capital first letters). We pivot longer to switch to long format. Then, we rename the "Year" variable to "year" in order to match the case of the snp and pols datasets to merge later. Finally, we convert the year variable to a character variable to match the snp and pols datasets for future merging. 
 
-The pols dataset contains information regarding presidential, senatorial, house, and governor party information. We are given the counts per month of each year (from 1947 through 2015) for party affiliation in each of the government branches. The snp dataset contains information for months of each year (1950 through 2015) regarding the closing value of the S&P stock index. The unemployment dataset contains information regarding the unemployment rate associated with months of each year (1948 through 2015). After merging snp into pols by year and month, and merging the unemployment dataset with the result, also by year and month, we have the final_data set. This dataset contains each month and year observation from all three original datasets, and all variables, besides day, from each dataset. There are missing values for certain variables in some months/years where data was not available but was included in this cleaning to be conservative. The final dataset has 1,1391 observations and 11 variables. The range of years included is from January 1947 to June 2015. Key variables in this analysis would inlude the year and month, as those are how we joined datasets.
-
-
+## Join the datasets by merging snp into pols
 ```{r}
 snp_pols = 
   left_join(pols, snp, by = c("year", "month"))
 snp_pols
 ```
+* Using left join, we merge snp into pols to produce the snp_pols dataset. 
 
+## Merge unemployment into snp_pols
 ```{r}
 final_data = left_join(snp_pols, unemployment, by = c("year", "month"))
 final_data
 ```
+* Using left join, we merge unemployment into snp_pols to produce the final_data dataset. 
+
+## Paragraph describing the final dataset
+*The pols dataset contains information regarding presidential, senatorial, house, and governor party information. We are given the counts per month of each year (from 1947 through 2015) for party affiliation in each of the government branches. The snp dataset contains information for months of each year (1950 through 2015) regarding the closing value of the S&P stock index. The unemployment dataset contains information regarding the unemployment rate associated with months of each year (1948 through 2015). After merging snp into pols by year and month, and merging the unemployment dataset with the result, also by year and month, we have the final_data set. This dataset contains each month and year observation from all three original datasets, and all variables, besides day, from each dataset. There are missing values for certain variables in some months/years where data was not available but was included in this cleaning to be conservative. The final dataset has 1,1391 observations and 11 variables. The range of years included is from January 1947 to June 2015. Key variables in this analysis would inlude the year and month, as those are how we joined datasets. Other important variables for analysis could include president,sp_close, and unemployment to test associations between the presidential status and economic indicators. 
 
 
+# Problem 3: Popularity of Baby Names
+
+## Load and tidy the data
 ```{r}
 baby_names = read_csv(file = "data/Popular_Baby_Names.csv") %>%
   janitor::clean_names() %>%
@@ -113,19 +140,20 @@ baby_names = read_csv(file = "data/Popular_Baby_Names.csv") %>%
     gender = str_to_lower(gender)) %>%
   distinct() %>%
   mutate(
-    ethnicity = as.character(ethnicity),
     ethnicity = if_else(ethnicity == "black non hisp", "black non hispanic", ethnicity),
     ethnicity = if_else(ethnicity == "asian and paci", "asian and pacific islander", ethnicity),
-    ethnicity = if_else(ethnicity == "white non hisp", "white non hispanic", ethnicity),
-    ethnicity = as.factor(ethnicity))
+    ethnicity = if_else(ethnicity == "white non hisp", "white non hispanic", ethnicity))
 ```
-
+* We clean variable names, rename variables to be more descriptive, convert all observations to lower case, then delete duplicate rows using distinct. Finally, since ethnicity names change over time, we create cohesive categorical indicators for each inconsistent predictor (black non hispanic, asian and pacific islander, and white non hispanic). 
 
 ```{r}
-olivia_table = tibble(
-  ethnicity = pull(baby_names, ethnicity), 
-  birth_year = pull(baby_names, birth_year)
-)
+olivia = baby_names %>%
+  filter(first_name == "olivia") %>%
+  select(birth_year, ethnicity, rank) %>%
+  pivot_wider(
+    names_from = "birth_year", 
+    values_from = "rank")
+olivia
 ```
 
 
