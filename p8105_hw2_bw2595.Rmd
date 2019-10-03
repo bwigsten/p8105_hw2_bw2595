@@ -71,9 +71,9 @@ pols = read_csv(file = "fivethirtyeight_datasets/pols-month.csv") %>%
   mutate(
     month = as.numeric(month), 
     month = month.abb[month],
-    prez_gop = recode(prez_gop, `1` = "gop", `0` = "dem", `2` = "gop"),
+    prez_gop = recode(prez_gop, `1` = "gop", `2` = "gop",`0` = "dem"),
     president = prez_gop) %>%
-  select(-day, -prez_dem, -prez_gop)
+  select(-prez_dem, -prez_gop, -day)
 pols
 ```
 * We clean the variable names of the pols data, separate the date into year, month, and day variables. Using mutate argument, we convert all month names to the 3 letter abbreviations, recode the prez_gop group to gop if 1 or 2, and dem if 0. Then, we set the newly created president variable to equal the prez_gop variable, then drop the day, prez_dem, and -prez_gop variables. This dataset is already arranged by year and month for merging later. 
@@ -82,13 +82,12 @@ pols
 ```{r}
 snp = read_csv(file = "fivethirtyeight_datasets/snp.csv") %>%
   janitor::clean_names() %>%
-  separate(date, into = c("day", "month", "year")) %>%
-  arrange(year, month) %>%
   rename(sp_close = close) %>%
+  separate(date, into = c("day", "month", "year")) %>%
   mutate(
     month = as.numeric(month),
     month = month.abb[month]) %>%
-  select(year, month, sp_close) 
+  select(starts_with("year"), everything(), -day) 
 snp
 ```
 * We clean the variable names of the snp data, separate the date into year, month, and day variables. We arrange the dataset by year and month. For clarity, we rename the variable "close" to "spclose". Then, using the mutate argument, we convert all month names to the 3 letter abbreviations. We select the year, month, and sp_close variables to keep in the final cleaned dataset. 
@@ -110,8 +109,7 @@ unemployment
 ## Join the datasets by merging snp into pols
 ```{r}
 snp_pols = 
-  left_join(pols, snp, by = c("year", "month"))
-snp_pols
+  left_join(pols, snp, by = c("month", "year"))
 ```
 * Using left join, we merge snp into pols to produce the snp_pols dataset. 
 
